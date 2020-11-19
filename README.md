@@ -13,7 +13,7 @@ As developers, our team has someone who’s a photographer working for UW studen
 
 ### Architecture Diagram
 
-![INFO441 Final Project Infrastructure Diagram.png](../static/graph.png)  
+![graph.png](/static/graph.png)  
 
 #### User Stories
 
