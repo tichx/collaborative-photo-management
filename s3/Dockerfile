@@ -1,5 +1,5 @@
 FROM alpine
 RUN apk add --no-cache bash ca-certificates
-COPY upload /upload
+COPY s3 /s3
 EXPOSE 8080
-ENTRYPOINT ["/upload"]
+ENTRYPOINT ["/s3"]

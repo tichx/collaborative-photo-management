@@ -35,6 +35,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/upload/", UploadHandler) // Upload
+	mux.HandleFunc("/delete/", deleteHandler) // Delete
 	log.Printf("Server is open and listening at %s", addr)
 	log.Fatal(http.ListenAndServe(addr, mux))
 }
