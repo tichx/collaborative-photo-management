@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -110,6 +111,59 @@ func main() {
 
 	//Create context
 	context := handlers.NewContext(sessionkey, sessionStore, usersStore)
+
+	//WEBSOCKET /////////////////////////////////////////////
+	///////////////////////////////////////
+	/////////////////////////////////////////////
+	///////////////////////////////////////////////////
+	rabbitAddr := os.Getenv("RABBIT_ADDR")
+	if rabbitAddr == "" {
+		fmt.Printf("please provide rabbit addr")
+		os.Exit(1)
+	}
+	conn, err := amqp.Dial("amqp://mq:5672/")
+	if err != nil {
+		fmt.Printf("fail connecting to rabbitmq: %s", err)
+		os.Exit(1)
+	}
+
+	ch, err := conn.Channel()
+	if err != nil {
+		fmt.Printf("fail opening rabbit channel: %s", err)
+		os.Exit(1)
+	}
+
+	defer ch.Close()
+
+	q, err := ch.QueueDeclare(
+		rabbitAddr, // name
+		true,       // durable
+		false,      // delete when unused
+		false,      // exclusive
+		false,      // no-wait
+		nil,        // arguments
+	)
+	if err != nil {
+		fmt.Printf("fail queue declare: %s", err)
+		os.Exit(1)
+	}
+	msg, err := ch.Consume(
+		q.Name,
+		"",    // Consumer
+		false, // Auto-Ack
+		false, // Exclusive
+		false, // No-local
+		false, // No-Wait
+		nil,   // Args
+	)
+	if err != nil {
+		fmt.Printf("fail consume: %s", err)
+		os.Exit(1)
+	}
+	go context.SocketStore.SendMessages(msg)
+	//WEBSOCKET /////////////////////////////////////////////
+	///////////////////////////////////////
+	/////////////////////////////////////////////
 
 	// 2.Create a new mux for the web server.
 	mux := http.NewServeMux()
