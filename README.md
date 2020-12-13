@@ -19,11 +19,11 @@ As developers, our team has someone who’s a photographer working for UW studen
 
 | Priority | User | Description | Technical Implementation Strategy |
 | --- | --- | --- | --- |
-|P0| As an usesr| I want to be able to create new account, log in, log out, change name of  my account | Store log in credentials in database, authenticate user and store sessions inside Redis database. |
-|P0|As a user|I want to be able to upload  photos from a local device.|Use an endpoint to insert new photos and photos will be stored on AWS S3 buckets.|
-|P0|As a contributor|I want to tag photos and filter/search them by tag name|Will have to store parameters of the pictures and use a framework to show a processed picture in the client. |
-|P0|As a contributor|I want to be able to glance photo gallery by tag,  by day, month, year to quickly find useful photos|Store the tags, etc. to the database. Use and endpoint to get the gallery then implement a filter to filter out tags, etc.|
-|P1|As a contributor|Stretch goal: I want to add title and description to photos|Will have the image struct be defined with fields to hold title and description information. And associate the images with users.|
+|P0| As an user| I want to be able to create new account, log in, log out, change name of my account | Store log in credentials in database, authenticate user and store sessions inside Redis database. |
+|P0|As a user|I want to be able to upload photo from a local device.|Use an endpoint to insert new photos and photos will be stored on AWS S3 buckets.|
+|P0|As a contributor|I want to tag photos and filter them by tag name|Will have to store parameters of the pictures and use a framework to show a processed picture in the client. |
+|P0|As a contributor|I want to be able to glance photo gallery by tag, by day, month, year to quickly find useful photos|Store the tags, etc. to the database. Use and endpoint to get the gallery then implement a filter to filter out tags, etc.|
+|P1|As a contributor|Stretch goal: I want to add captions to photos|Will have the image struct be defined with fields to hold title and description information. And associate the images with users.|
 |P1|As a contributor|Stretch goal: I want to discuss with other contributors live as browsing through the photos|Will implement a chat feature through websockets to enable client side messaging. Authenticated users can find other users by email to chat and collaborate|
 |P2|As a contributor|Stretch goal: I want to share the photos with other contributors|The user can use an endpoint to get to the resources (maybe by album id/photo id)|
 
@@ -54,44 +54,83 @@ As developers, our team has someone who’s a photographer working for UW studen
         - 404: Cannot find the user
         - 500: Internal server error.
 #### Photo Management
-- /v1/photo: import photos
+- /v1/photos: import photos
     - POST; application/json: Import a new photo under the user’s account.
         - 201; application/json: Successfully adds the photo to the gallery; returns a json object of the imported photo information.
         - 400: Some parameters (unsupported format etc.) are wrong.
+        - 401: x-user is missing from header or user is not authenticated
         - 500: Internal server error.
-- /v1/photo?{year|month|datetime}=
+- /v1/photos?{year|month|datetime}=
     - GET; application/json: get all the photos, then filter by year inside the sql query
-        - 201; application/json: Successfully gets the information of all photos, returns an array of json objects of the photo information. 
-        - 400: wrong format for year, etc.
+        - 200; application/json: Successfully gets the information of all photos, returns an array of json objects of the photo information. 
+        - 401: x-user is missing from header or user is not authenticated
         - 500: Internal server error.
+- /v1/photos/:photoID/tag/:tagID
+    - POST; application/json: Add a tag to a photo
+        - 200: success
+        - 400: user's email is not found / error occurred when retrieving the tag
+        - 401: x-user is missing from header or user is not authenticated
+        - 403: user is not the creator of the photo
+        - 404: the target photo is not found
+        - 500: internal errors
+- /v1/photos/:photoID
+    - DELETE; application/json: delete a photo by photoID
+        - 200: success
+        - 401: x-user is missing from header
+        - 403: user is not authenticated
+        - 500: internal errors
 #### Tags
-- /v1/photo?tag= gets the PhotoID[] from the Tag table with this tag name(or tag id)
+- /v1/tags: get all the tags this user has access to
     - GET; application/json: get all the photos, then filter by tags
-        - 201; application/json: Successfully gets the information of all photos, returns an array of json objects of the photo information. 
-        - 404: Cannot find any photo for this tag
+        - 200; application/json: Successfully gets the information of all tags, returns an array of json objects of the tag information. 
+        - 401: x-user is missing from header or user is not authenticated
         - 500: Internal server error.
-- /v1/tags: create a new tag with a selection of photos
+- /v1/tags: create a new tag
     - POST: create a new tag with a name
-        - 200  tagged
-        - 422 : invalid user input
-        - 415: unsupported media
+        - 201  tag created
+        - 401: x-user is missing from header or user is not authenticated
         - 500: internal server error
-- /v1/tags/: gets all the tags created by the user
-    - GET; application/json: return all tags with a specific userid
+- /v1/tags/:tagID
+    - DELETE: delete a tag by ID
+        - 200: successfully deleted
+        - 401: x-user is missing from header
+        - 403 user is not authenticated
+        - 500: internal errors
+- /v1/tags/:tagID/members
+    - POST; application/json: add a new member to the tag group, returns a updated tag object
+        - 201: successfully added the member
+        - 400: user id is not supplied
+        - 401: x-user is missing from header or user is not authenticated
+        - 500: internal errors
+- /v1/tags/:tagID/members
+    - DELETE; application/json: delete a user from members of a tag
+        - 200: successfully deleted.
+        - 401: x-user is missing from header
+        - 403: user is not authenticated
+        - 500: internal errors
 
 ### Appendix
 #### Database Schema
 ```
 # Photos
-Photo: {
-    PhotoID int
-    Title string
-    Note string
-    Tag String
-    DateCreated datetime
-    LastModifiedTime datetime
-    Link string
-    PhotoURL string
+photoSchema = {
+    id: {type:Schema.Types.ObjectId, required:true, unique:true, auto:true},
+    url: {type:String, required:true, unique:true},
+    description: String,
+    tags: {type:[{_id: false,id:Schema.Types.ObjectId}]},
+    createdAt: {type:Date, required:true},
+    creator: {type:{id:Number, email:String}},
+    editedAt: Date,
+}
+
+#Tags
+tagSchema = {
+    id: {type:Schema.Types.ObjectId, required:true, unique:true, auto:true},
+    name: {type:String, required:true},
+    members: {type:[{_id: false,id:Number, email:String}]},
+    createdAt: {type:Date, required:true},
+    creator: {id:Number, email:String},
+    editedAt: Date,
 }
 
 # Users
@@ -105,21 +144,5 @@ User: {
     Tag TagID[]
     Email string
 }
- 
-# Albums
-Album: {
-    AlbumID int
-    AlbumName string
-    DateCreated datetime
-    Photos PhotoID[]
-}
 
-#Tags
-Tags: {
-    TagID int
-    TagName string
-    DateCreated datetime
-    Photos PhotoID[]
-    UserID int
-}
 ```
