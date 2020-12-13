@@ -14,3 +14,5 @@ docker run -d \
 --network site \
 --name photo \
 ss251/photo
+
+#ssh -i "shiny.pem" ubuntu@ec2-34-217-136-38.us-west-2.compute.amazonaws.com

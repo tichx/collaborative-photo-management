@@ -177,6 +177,7 @@ func (ctx *HandlerContext) SessionsHandler(w http.ResponseWriter, r *http.Reques
 		Time: time.Now(),
 		User: user,
 	}
+
 	w.Header().Set(headerContentType, contentTypeJSON)
 	w.WriteHeader(http.StatusCreated)
 	_, err = sessions.BeginSession(ctx.Key, ctx.SessionStore, sess, w)
@@ -184,6 +185,20 @@ func (ctx *HandlerContext) SessionsHandler(w http.ResponseWriter, r *http.Reques
 		http.Error(w, "Session begin went wrong", http.StatusInternalServerError)
 		return
 	}
+
+	//Log Successful sign-in
+	//by default takes in RemoteAddr
+	//if X-Forwarded-For header is included, use the first IP address in the list
+	ipAddr := r.RemoteAddr
+	if r.Header.Get("X-Forwarded-For") != "" {
+		ipAddr = strings.Split(r.Header.Get("X-Forwarded-For"), ", ")[0]
+	}
+	_, err = ctx.UserStore.InsertSignIn(user.ID, ipAddr)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	err = json.NewEncoder(w).Encode(user)
 	if err != nil {
 		http.Error(w, "JSON encode went wrong", http.StatusInternalServerError)

@@ -78,11 +78,11 @@ func main() {
 	summaryAddr := os.Getenv("SUMMARYADDR")
 	summaryProxy := httputil.NewSingleHostReverseProxy(&url.URL{Scheme: "http", Host: summaryAddr})
 
-	s3Addr := os.Getenv("S3ADDR")
-	if len(s3Addr) == 0 {
-		s3Addr = "http://micro-s3:8080"
-	}
-	s3Proxy := httputil.NewSingleHostReverseProxy(&url.URL{Scheme: "http", Host: s3Addr})
+	// s3Addr := os.Getenv("S3ADDR")
+	// if len(s3Addr) == 0 {
+	// 	s3Addr = "http://micro-s3:8181"
+	// }
+	// s3Proxy := httputil.NewSingleHostReverseProxy(&url.URL{Scheme: "http", Host: s3Addr})
 
 	messageCount := 0
 	messageDirector := func(r *http.Request) {
@@ -137,7 +137,7 @@ func main() {
 	mux.Handle("/v1/summary", summaryProxy)
 	mux.Handle("/v1/photos/", photoProxy)
 	mux.Handle("/v1/photos", photoProxy)
-	mux.Handle("/v1/upload/", s3Proxy)
+	// mux.Handle("/v1/upload/", s3Proxy)
 	// mux.Handle("/v1/channels", messageProxy)
 	// mux.Handle("/v1/channels/", messageProxy)
 	// mux.Handle("/v1/messages/", messageProxy)

@@ -9,3 +9,5 @@ docker run -d \
 -e TLSKEY=/etc/letsencrypt/live/xutiancheng.me/privkey.pem \
 -e TLSCERT=/etc/letsencrypt/live/xutiancheng.me/fullchain.pem \
 ss251/client
+
+#ssh -i "shiny.pem" ubuntu@ec2-34-213-29-25.us-west-2.compute.amazonaws.com

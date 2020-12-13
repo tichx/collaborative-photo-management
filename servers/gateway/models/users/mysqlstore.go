@@ -89,6 +89,22 @@ func (db *MySQLStore) Update(id int64, updates *Updates) (*User, error) {
 
 }
 
+//InsertSignIn logs a new successful sign in
+func (db *MySQLStore) InsertSignIn(userID int64, ip string) (int64, error) {
+	insq := "insert into users_signin(id, date_time, ip_addr) values (?,now(),?)"
+	res, err := db.Client.Exec(insq, userID, ip)
+	if err != nil {
+		return int64(0), err
+	}
+
+	//get generated ID from insert
+	id, err := res.LastInsertId()
+	if err != nil {
+		return int64(0), err
+	}
+	return id, nil
+}
+
 //Delete the user with the given ID
 func (db *MySQLStore) Delete(id int64) error {
 	dq := "delete from users where id=?"

@@ -28,4 +28,7 @@ type Store interface {
 
 	//Delete deletes the user with the given ID
 	Delete(id int64) error
+
+	//Insert New Sign in to database
+	InsertSignIn(userID int64, ip string) (int64, error)
 }

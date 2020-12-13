@@ -45,24 +45,30 @@ func GetSessionID(r *http.Request, signingKey string) (SessionID, error) {
 	//or the "auth" query string parameter if no Authorization header is present,
 	//and validate it. If it's valid, return the SessionID. If not
 	//return the validation error.
-	header := r.Header.Get(headerAuthorization)
-	if len(header) == 0 {
-		header = r.URL.Query().Get(paramAuthorization)
-	}
-	if len(header) == 0 {
-		return InvalidSessionID, ErrNoSessionID
-	}
+	var sidraw string
+	var sid string
+	var err error
 
-	if !strings.HasPrefix(header, schemeBearer) {
-		return InvalidSessionID, ErrInvalidScheme
+	//if Authorization header exists, extract the header
+	if _, exists := r.Header[headerAuthorization]; exists {
+		sidraw = r.Header.Get(headerAuthorization)
+		sid, err = ValidateBearerHelper(sidraw)
+		if nil != err {
+			return InvalidSessionID, err
+		}
+		//else attempt to extract from query
+	} else {
+		sidraw = r.URL.Query().Get("auth")
+		sid, err = ValidateBearerHelper(sidraw)
+		if nil != err {
+			return InvalidSessionID, err
+		}
 	}
-	header = strings.TrimPrefix(header, schemeBearer)
-
-	sid, err := ValidateID(header, signingKey)
-	if err != nil {
-		return InvalidSessionID, ErrNoSessionID
+	validSid, err := ValidateID(sid, signingKey)
+	if nil != err {
+		return InvalidSessionID, err
 	}
-	return sid, nil
+	return validSid, nil
 }
 
 //GetState extracts the SessionID from the request,
@@ -80,6 +86,16 @@ func GetState(r *http.Request, signingKey string, store Store, sessionState inte
 	if resp != nil {
 		return InvalidSessionID, resp
 	}
+	return sid, nil
+}
+
+//ValidateBearerHelper takes in a raw sid string, check if it's empty or has wrong prefix
+//return sid if its in correct format, or else return ErrInvalidScheme error
+func ValidateBearerHelper(sidraw string) (string, error) {
+	if len(sidraw) == 0 || !(strings.HasPrefix(sidraw, schemeBearer)) {
+		return "", ErrInvalidScheme
+	}
+	sid := strings.TrimPrefix(sidraw, schemeBearer)
 	return sid, nil
 }
 

@@ -5,9 +5,11 @@ docker run -d \
 -p 3306:3306 \
 --name userstore \
 -e MYSQL_ROOT_PASSWORD=password \
--e MYSQL_DATABASE=users \
+-e MYSQL_DATABASE=Users \
 --network site \
 ss251/userstore
+
+#docker exec -t -i userstore /bin/bash -c "mysql -uroot -p$MYSQL_ROOT_PASSWORD"
 
 
 

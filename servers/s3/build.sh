@@ -1,8 +1,8 @@
 GOOS=linux go build
-docker build -t tichx/s3 .
+docker build -t ss251/s3 .
 go clean
 
-docker push tichx/s3
+docker push ss251/s3
 
 ssh -i "shiny.pem" ubuntu@ec2-34-217-136-38.us-west-2.compute.amazonaws.com < update.sh
 

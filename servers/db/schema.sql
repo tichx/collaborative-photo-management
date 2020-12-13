@@ -1,3 +1,8 @@
+CREATE DATABASE
+IF NOT EXISTS Users;
+
+USE Users;
+
 create table if not exists users (
     id int not null auto_increment primary key,
     email varchar(254) not null unique,
