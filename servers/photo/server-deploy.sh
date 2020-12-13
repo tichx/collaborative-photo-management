@@ -1,4 +1,4 @@
-docker pull tichx/photo
+docker pull ss251/photo
 docker rm -f photo
 # docker rm -f mongodb
 
@@ -13,4 +13,4 @@ docker run -d \
 -e MYSQLADDR="userstore,root,password,users" \
 --network site \
 --name photo \
-tichx/photo
+ss251/photo

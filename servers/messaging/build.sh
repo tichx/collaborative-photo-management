@@ -1,1 +1,1 @@
-docker build -t tichx/message .
+docker build -t ss251/message .

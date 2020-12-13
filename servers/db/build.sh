@@ -1,1 +1,1 @@
-docker build -t tichx/userstore .
+docker build -t ss251/userstore .

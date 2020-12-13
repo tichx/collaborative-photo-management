@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 docker rm -f client
-docker pull tichx/client
+docker pull ss251/client
 docker run -d \
 -p 80:80 -p 443:443 \
 --name client \
@@ -8,4 +8,4 @@ docker run -d \
 -v /usr/share/nginx/ \
 -e TLSKEY=/etc/letsencrypt/live/xutiancheng.me/privkey.pem \
 -e TLSCERT=/etc/letsencrypt/live/xutiancheng.me/fullchain.pem \
-tichx/client
+ss251/client

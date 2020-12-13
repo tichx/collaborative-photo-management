@@ -1,4 +1,4 @@
 GOOS=linux go build
-docker build -t tichx/gateway .
+docker build -t ss251/gateway .
 go install
 go clean

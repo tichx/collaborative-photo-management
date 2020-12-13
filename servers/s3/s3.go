@@ -12,6 +12,18 @@ import (
 //UplaodHandler for uploading img to aws s3 bucket
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
+	w.Header().Set("Content-Type", "application/json")
+	/*
+		- Get the `url` query string parameter value from the request.
+		  If not supplied, respond with an http.StatusBadRequest error.
+	*/
+	//queryString, ok := r.URL.Query()["key"]
+	//filename := r.URL.Query().Get("filename")
+
+	uploadContentType := "image/jpeg"
+	acl := "public-read"
+	contentDisposition := "inline"
+
 	r.ParseMultipartForm(10 << 20)
 
 	// Get a file from the form input name "file"
@@ -23,15 +35,22 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
+	fmt.Printf("Uploaded File: %+v\n", header.Filename)
+	fmt.Printf("File Size: %+v\n", header.Size)
+	fmt.Printf("MIME Header: %+v\n", header.Header)
+
 	filename := header.Filename
 
 	// Upload the file to S3.
 	uploader := s3manager.NewUploader(sess)
 
 	_, err = uploader.Upload(&s3manager.UploadInput{
-		Bucket: aws.String(AWS_S3_BUCKET), // Bucket
-		Key:    aws.String(filename),      // Name of the file to be saved
-		Body:   file,                      // File
+		Bucket:             aws.String(AWS_S3_BUCKET), // Bucket
+		Key:                aws.String(filename),      // Name of the file to be saved
+		Body:               file,
+		ContentDisposition: aws.String(contentDisposition), //
+		ContentType:        aws.String(uploadContentType),  // this is what you need!
+		ACL:                aws.String(acl),                // this makes it public so people can see it
 	})
 	if err != nil {
 		//error handling here

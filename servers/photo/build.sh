@@ -1,1 +1,1 @@
-docker build -t tichx/photo .
+docker build -t ss251/photo .

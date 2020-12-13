@@ -1,7 +1,7 @@
 docker rm -f gateway
 docker rm -f redis
-docker pull tichx/gateway
-docker pull tichx/message
+docker pull ss251/gateway
+docker pull ss251/message
 
 docker run -d \
 -p 6379:6379 \
@@ -19,8 +19,9 @@ docker run -d \
 -e MESSAGESADDR=message:80 \
 -e SUMMARYADDR=summary:80 \
 -e PHOTOSADDR=photo:80 \
+-e S3ADDR=micro-s3:8080 \
 -e DSN='root:password@tcp(34.217.136.38:3306)/users' \
 -e SESSIONKEY=arandomkeyforhashing \
 -e REDISADDR=redis:6379 \
-tichx/gateway
+ss251/gateway
 

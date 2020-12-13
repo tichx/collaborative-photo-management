@@ -1,1 +1,1 @@
-docker build -t tichx/client .
+docker build -t ss251/client .

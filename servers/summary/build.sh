@@ -1,4 +1,4 @@
 GOOS=linux go build
-docker build -t tichx/summary .
+docker build -t ss251/summary .
 go install
 go clean

@@ -1,4 +1,4 @@
-docker pull tichx/message
+docker pull ss251/message
 docker rm -f message
 docker rm -f mongodb
 
@@ -14,4 +14,4 @@ docker run -d \
 -e MYSQLADDR="userstore,root,password,users" \
 --network site \
 --name message \
-tichx/message
+ss251/message
