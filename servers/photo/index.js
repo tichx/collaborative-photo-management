@@ -47,7 +47,7 @@ app.listen(port, host, () => {
     console.log(`listening on ${port}`);
 })
 
-// connects to db
+// helper to connect to mysql db
 async function runQuery(query) {
     return new Promise(function (resolve, reject) {
         conn.query(query, async function (err, result, field) {
@@ -59,7 +59,18 @@ async function runQuery(query) {
     })
 }
 
-// get all the photos you have access to (could be a member of the photo, or the creator of the photo)
+// Get all the photos one has access to (could see a photo for being as a member of a tag, 
+// or being the creator of the photo).
+// Params Usage: 
+// 1. /v1/photos/ 
+// 2. /v1/photos?year=2020
+// 3. /v1/photos?month=12
+// 4. /v1/photos?date=/2020/12/07
+// Returns a json encode list of photo objects, defualt []
+//
+// 200: success
+// 401: x-user is missing from header or user is not authenticated
+// 500: internal errors
 app.get("/v1/photos", async (req, res) => {
     if (!("x-user" in req.headers)) {
         res.status(401).send("user is not authenticated");
@@ -118,9 +129,12 @@ app.get("/v1/photos", async (req, res) => {
     }
 });
 
-// post a new photo. Expect a requried 'url' field from client, and optional description.
-// todo: having a another post requent handler to handle acutal photo upload, 
-// which should return a url to feed into this method.
+// Post a new photo url to the user's account. 
+// Expected  {"url":"string", "description":"some description"} url is a required field.
+// Returns a json encoded object of inserted item.
+// 201: success
+// 401: x-user is missing from header or user is not authenticated
+// 500: internal errors
 app.post("/v1/photos/", async (req, res) => {
     if (!("x-user" in req.headers)) {
         res.status(401).send("user is not authenticated");
@@ -164,9 +178,19 @@ app.post("/v1/photos/", async (req, res) => {
     })
 });
 
-// Add a tag to a photo or a selection of photos
+// Post: Add a tag to a photo
+// Constraints:
 // - client must be the creator of the tag or a member of the tag (you can't access tags someone else created, unless you are a member of the tag)
 // - the target photo's creator must also be the the member of the tag (you can't tag stranger's photos)
+//
+// 
+// Returns the updated photo object with tag attached to the tag attribute.
+// 200: success
+// 400: user's email is not found / error occurred when retrieving the tag
+// 401: x-user is missing from header or user is not authenticated
+// 403: user is not the creator of the photo
+// 404: the target photo is not found
+// 500: internal errors
 app.post("/v1/photos/:photoID/tag/:tagID", async (req, res) => {
     if (!("x-user" in req.headers)) {
         res.status(401).send("user is not authenticated");
@@ -183,7 +207,7 @@ app.post("/v1/photos/:photoID/tag/:tagID", async (req, res) => {
         if(results[0] && results[0].email) {
             names = results[0].email
         } else {
-            res.status(500).send("Cannot find email")
+            res.status(400).send("Cannot find email")
             return;
         }
     } catch(e) {
@@ -231,6 +255,10 @@ app.post("/v1/photos/:photoID/tag/:tagID", async (req, res) => {
 
 
 // Get all the tags this user has access to
+// returns the encoded json obejcts in a list
+// 200: success
+// 401: x-user is missing from header or user is not authenticated
+// 500: internal errors
 app.get("/v1/tags", async (req, res) => {
     if (!("x-user" in req.headers)) {
         res.status(401).send("user is not authenticated");
@@ -251,7 +279,12 @@ app.get("/v1/tags", async (req, res) => {
     }
 });
 
-// Creates a new tag with a required field name
+// Creates a new tag
+// Requires {"name": "some tag name"}
+// Returns a json encoded tag object
+// 201: success
+// 401: x-user is missing from header or user is not authenticated
+// 500: internal errors
 app.post("/v1/tags", async (req, res) => {
     if (!("x-user" in req.headers)) {
         res.status(401).send("user is not authenticated");
@@ -274,7 +307,7 @@ app.post("/v1/tags", async (req, res) => {
             if(results[0] && results[0].email) {
                 names = results[0].email
             } else {
-                res.status(500).send("Cannot find email")
+                res.status(400).send("Cannot find email")
                 return;
             }
         } catch(e) {
@@ -301,105 +334,13 @@ app.post("/v1/tags", async (req, res) => {
     }
 });
 
-// app.post("/v1/channels/:channelID", async (req, res) => {
-//     if (!("x-user" in req.headers)) {
-//         res.status(401).send("user is not authenticated");
-//         return;
-//     }
-//     const {userID} = JSON.parse(req.headers['x-user'])
-//     if (!userID) {
-//         res.status(401).send("user id missing from x-user");
-//         return;
-//     }
-   
-//     try {
 
-//         const channel = await Channel.findOne({"id":req.params.channelID});
-//         if(!channel) {
-//             res.status(404).send("Error: Channel does not exist.")
-//             return;
-//         }
-//         if (!channel['members'].some(user => user.id == userID) && channel.private) {
-//             res.status(403).send("User is not authorized to see");
-//                 return;
-//         }
-//         let channelID = req.params.channelID
-//         let row = await runQuery("select email from users where id=" + mysql.escape(userID))
-//         names = ""
-//         if(row[0] && row[0].email) {
-//             names = row[0].email
-//         } else {
-//             res.status(404).send("Error: Cannot find email")
-//             return;
-//         }
-//         let msg = Message({
-//             channelID: channelID,
-//             body: req.body.body,
-//             createdAt: Date.now(),
-//             creator: {id:userID, email:names}
-//         })
-//         msg.save(function(err) {
-//             if (err) {
-//                 res.status = 500;
-//                 res.send("Error saving new message " + err);
-//                 return;
-//             }
-//             res.status = 201
-//             res.setHeader(content, appjson)
-//             res.send(msg)
-//             return;
-//         })
-//     } catch (e) {
-//         console.log(e);
-//         res.status(500).send("Unable to find any channels")
-//         return;
-//     }
-// });
-
-// app.patch("/v1/channels/:channelID", async (req, res) => {
-//     if (!("x-user" in req.headers)) {
-//         res.status(401).send("user is not authenticated");
-//         return;
-//     }
-//     const {userID} = JSON.parse(req.headers['x-user'])
-//     if (!userID) {
-//         res.status(401).send("user id missing from x-user");
-//         return;
-//     }
-//     try {
-//         let updates = {}
-//         if (req.body.name && req.body.description) {
-//             updates = {name:req.body.name,description:req.body.description }
-//         } else if (req.body.name) {
-//             updates = {name:req.body.name }
-//         } else if (req.body.description) {
-//             updates = {description:req.body.description }
-//         } else {
-//             res.status(401).send("update object missing or misformed.");
-//             return;
-//         }
-//         Channel.findOneAndUpdate({id:req.params.channelID}, {$set: updates}, {new:true}, function(err, channel){
-//             if (err) {
-//                 res.status = 400;
-//                 res.send("Error finding channel. "+ err);
-//                 return;
-//             }
-//             if(userID != channel.creator.id){
-//                 res.status(403);
-//                 res.send("Unauthorized: this user is not the creator");
-//                 return;
-//             }
-//             res.setHeader(content, appjson)
-//             res.send(channel)
-//             return;
-//         })
-//     } catch (e) {
-//         console.log(e);
-//         res.status(500).send("Unable to find any channels")
-//         return;
-//     }
-// });
-
+// delete a tag by tagID
+// reutrns a message
+// 200: success
+// 401: x-user is missing from header
+// 403 user is not authenticated
+// 500: internal errors
 app.delete("/v1/tags/:tagID", async (req, res) => {
     if (!("x-user" in req.headers)) {
         res.status(401).send("user is not authenticated");
@@ -443,6 +384,11 @@ app.delete("/v1/tags/:tagID", async (req, res) => {
     }
 });
 
+// delete a photo by photoID
+// 200: success
+// 401: x-user is missing from header
+// 403: user is not authenticated
+// 500: internal errors
 app.delete("/v1/photos/:photoID", async (req, res) => {
     if (!("x-user" in req.headers)) {
         res.status(401).send("user is not authenticated");
@@ -484,7 +430,14 @@ app.delete("/v1/photos/:photoID", async (req, res) => {
     }
 });
 
-
+// add a member to a tag
+// expects {"id" : 4}, a user id in integer
+// returns a message "user added"
+//
+// 201: success
+// 400: user id is not supplied
+// 401: x-user is missing from header or user is not authenticated
+// 500: internal errors
 app.post("/v1/tags/:tagID/members", async (req, res) => {
     if (!("x-user" in req.headers)) {
         res.status(401).send("user is not authenticated");
@@ -537,6 +490,12 @@ app.post("/v1/tags/:tagID/members", async (req, res) => {
     }
 });
 
+// delete a user from members of a tag
+// expect a {"id":8}, a user id in integer format
+// 200: success
+// 401: x-user is missing from header
+// 403: user is not authenticated
+// 500: internal errors
 app.delete("/v1/tags/:tagID/members", async (req, res) => {
     if (!("x-user" in req.headers)) {
         res.status(401).send("user is not authenticated");
@@ -578,77 +537,3 @@ app.delete("/v1/tags/:tagID/members", async (req, res) => {
         return;
     }
 });
-
-// app.patch("/v1/messages/:messageID", async (req, res) => {
-//     if (!("x-user" in req.headers)) {
-//         res.status(401).send("user is not authenticated");
-//         return;
-//     }
-//     const {userID} = JSON.parse(req.headers['x-user'])
-//     if (!userID) {
-//         res.status(401).send("user id missing from x-user");
-//         return;
-//     }
-//     try {
-        
-//         Message.findOneAndUpdate({id:req.params.messageID}, {$set: {body:req.body.body}}, {new:true}, function(err, message){
-//             if (err) {
-//                 res.status = 400;
-//                 res.send("Error finding message. "+ err);
-//                 return;
-//             }
-//             if (message) {
-//                 if(userID != message.creator.id){
-//                     res.status(403);
-//                     res.send("Unauthorized: this user is not the creator");
-//                     return;
-//                 }
-//             } else {
-//                 res.status = 400;
-//                 res.send("Error finding message.");
-//                 return;
-//             }
-//             res.setHeader(content, appjson)
-//             res.send(message)
-//             return;
-//         })
-//     } catch (e) {
-//         console.log(e);
-//         res.status(500).send("Unable to find any messages")
-//         return;
-//     }
-// });
-
-// app.delete("/v1/messages/:messageID", async (req, res) => {
-//     if (!("x-user" in req.headers)) {
-//         res.status(401).send("user is not authenticated");
-//         return;
-//     }
-//     const {userID} = JSON.parse(req.headers['x-user'])
-//     if (!userID) {
-//         res.status(401).send("user id missing from x-user");
-//         return;
-//     }
-   
-//     try {
-//         Message.findOneAndDelete({id:req.params.messageID}, function(err, message){
-//             if (err) {
-//                 res.status = 400;
-//                 res.send("Error finding message"+ err);
-//                 return;
-//             }
-//             if(userID != message.creator.id){
-//                 res.status(403);
-//                 res.send("Unauthorized: this user is not the creator");
-//                 return;
-//             }
-//             res.send("Message successfully deleted")
-//         })
-//     } catch (e) {
-//         console.log(e);
-//         res.status(500).send("Unable to find any messages")
-//         return;
-//     }
-// });
-
-
