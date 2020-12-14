@@ -12,7 +12,7 @@ As developers, our team has someone who’s a photographer working for UW studen
 ## Technical Descriptioin
 
 ### Architecture Diagram
-
+(See updated aarchitecture diagram at the bottom)
 ![graph.png](/static/graph.png)  
 
 #### User Stories
@@ -146,3 +146,6 @@ User: {
 }
 
 ```
+#### Addendum
+Updated Archietecture Diagram
+![updated.png](/static/updated.png)
