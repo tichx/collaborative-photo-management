@@ -19,7 +19,7 @@ const conn = mysql.createPool({
     host: mysqlEndPoint[0],
     user: mysqlEndPoint[1],
     password: mysqlEndPoint[2],
-    database: mysqlEndPoint[3],
+    database: 'Users',
     insecureAuth: true
 });
 
