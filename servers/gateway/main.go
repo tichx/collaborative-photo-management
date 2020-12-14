@@ -138,6 +138,7 @@ func main() {
 	mux.Handle("/v1/photos/", photoProxy)
 	mux.Handle("/v1/photos", photoProxy)
 	mux.Handle("/v1/upload/", s3Proxy)
+	mux.Handle("/v1/delete/", s3Proxy)
 	// mux.Handle("/v1/channels", messageProxy)
 	// mux.Handle("/v1/channels/", messageProxy)
 	// mux.Handle("/v1/messages/", messageProxy)

@@ -2,6 +2,7 @@ package sessions
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"time"
 
@@ -44,7 +45,7 @@ func (rs *RedisStore) Save(sid SessionID, sessionState interface{}) error {
 	err = rs.Client.Set(sid.getRedisKey(), marshaled, rs.SessionDuration).Err()
 	if err != nil {
 		if err == redis.Nil {
-			return nil
+			return fmt.Errorf("nil token?")
 		}
 		return err
 	}

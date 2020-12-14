@@ -1,15 +1,23 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
-//UplaodHandler for uploading img to aws s3 bucket
+//ImgStruct has meta-data for image
+type ImgStruct struct {
+	ImgUrl       string    `json:"imgurl"`
+	DateModified time.Time `json:"datemodified"`
+}
+
+//UploadHandler for uploading img to aws s3 bucket
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
@@ -59,7 +67,13 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "Successfully uploaded to %q\n", AWS_S3_BUCKET)
+	data := ImgStruct{"https://image-441.s3.amazonaws.com/" + filename, time.Now()}
+
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		showError(w, r, http.StatusInternalServerError, "Error getting img metadata")
+		return
+	}
+
 	return
 }
 
@@ -67,20 +81,12 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 func deleteHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(10 << 20)
 
-	// Get a file from the form input name "file"
-	file, header, err := r.FormFile("file")
-	if err != nil {
-		showError(w, r, http.StatusInternalServerError, "Something went wrong retrieving the file from the form")
-		return
-	}
-	defer file.Close()
-
-	filename := header.Filename
+	filename := r.URL.Query().Get("imgname")
 
 	// create service client.
 	delete := s3.New(sess)
 
-	_, err = delete.DeleteObject(&s3.DeleteObjectInput{
+	_, err := delete.DeleteObject(&s3.DeleteObjectInput{
 		Bucket: aws.String(AWS_S3_BUCKET), // Bucket
 		Key:    aws.String(filename),      // Name of the file to be deleted
 	})
@@ -101,6 +107,12 @@ func deleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "Successfully deleted image %q from bucket to %q\n", filename, AWS_S3_BUCKET)
+	data := ImgStruct{"https://image-441.s3.amazonaws.com/" + filename, time.Now()}
+
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		showError(w, r, http.StatusInternalServerError, "Error getting img metadata")
+		return
+	}
+
 	return
 }
