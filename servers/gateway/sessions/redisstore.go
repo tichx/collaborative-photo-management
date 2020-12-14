@@ -2,6 +2,7 @@ package sessions
 
 import (
 	"encoding/json"
+	"log"
 	"time"
 
 	"github.com/go-redis/redis"
@@ -17,10 +18,13 @@ type RedisStore struct {
 
 //NewRedisStore constructs a new RedisStore
 func NewRedisStore(client *redis.Client, sessionDuration time.Duration) *RedisStore {
-	return &RedisStore{
-		Client:          client,
-		SessionDuration: sessionDuration,
+	if client != nil {
+		return &RedisStore{
+			Client:          client,
+			SessionDuration: sessionDuration,
+		}
 	}
+	return nil
 }
 
 //Store implementation
@@ -32,15 +36,19 @@ func (rs *RedisStore) Save(sid SessionID, sessionState interface{}) error {
 	//TODO: marshal the `sessionState` to JSON and save it in the redis database,
 	//using `sid.getRedisKey()` for the key.
 	//return any errors that occur along the way.
-	json, err := json.Marshal(sessionState)
+	marshaled, err := json.Marshal(sessionState)
 	if err != nil {
 		return err
 	}
-
-	resp := rs.Client.Set(sid.getRedisKey(), json, rs.SessionDuration)
-	if resp.Err() != nil {
-		return resp.Err()
+	log.Println("Trying to Save sid: " + sid.getRedisKey())
+	err = rs.Client.Set(sid.getRedisKey(), marshaled, rs.SessionDuration).Err()
+	if err != nil {
+		if err == redis.Nil {
+			return nil
+		}
+		return err
 	}
+
 	return nil
 }
 
@@ -55,26 +63,15 @@ func (rs *RedisStore) Get(sid SessionID, sessionState interface{}) error {
 	//for extra-credit using the Pipeline feature of the redis
 	//package to do both the get and the reset of the expiry time
 	//in just one network round trip!
-	ppl := rs.Client.Pipeline()
-	defer ppl.Close()
-	resp := ppl.Get(sid.getRedisKey())
-	ppl.Expire(sid.getRedisKey(), rs.SessionDuration)
-	_, err := ppl.Exec()
-	if err != nil {
-		if err == redis.Nil {
-			return ErrStateNotFound
-		}
-		return err
-	}
-	sess, err := resp.Result()
+	oldData, err := rs.Client.Get(sid.getRedisKey()).Bytes()
 	if err != nil {
 		return err
 	}
-	session := []byte(sess)
-	err = json.Unmarshal(session, sessionState)
+	err = json.Unmarshal(oldData, sessionState)
 	if err != nil {
 		return err
 	}
+	rs.Client.Expire(sid.getRedisKey(), rs.SessionDuration)
 	return nil
 }
 

@@ -30,7 +30,7 @@ func main() {
 
 	addr, addrExists := os.LookupEnv("ADDR")
 	if !addrExists {
-		addr = ":8181"
+		addr = ":8080"
 	}
 
 	mux := http.NewServeMux()

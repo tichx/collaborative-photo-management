@@ -10,6 +10,6 @@ docker run -d \
 ss251/userstore
 
 #docker exec -t -i userstore /bin/bash -c "mysql -uroot -p$MYSQL_ROOT_PASSWORD"
-
+#ssh -i "shiny.pem" ubuntu@ec2-34-217-136-38.us-west-2.compute.amazonaws.com
 
 
