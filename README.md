@@ -55,13 +55,18 @@ As developers, our team has someone who’s a photographer working for UW studen
         - 500: Internal server error.
 #### Photo Management
 - /v1/photos: import photos
-    - POST; application/json: Import a new photo under the user’s account.
+    - POST; application/json: Import a new photo under the user’s account. 
+        - Required payload: {"url" : "https://aws.s3.com/someimage.jpg"} or {"url" : "https://aws.s3.com/someimage.jpg", "description": "image caption."}
         - 201; application/json: Successfully adds the photo to the gallery; returns a json object of the imported photo information.
         - 400: Some parameters (unsupported format etc.) are wrong.
         - 401: x-user is missing from header or user is not authenticated
         - 500: Internal server error.
-- /v1/photos?{year|month|datetime}=
+- /v1/photos?{year|month|datetime}= 
     - GET; application/json: get all the photos, then filter by year inside the sql query
+        - Sample payload:
+            - /v1/photos?year=2020
+            - /v1/photos?month=12
+            - /v1/photos?datetime=2020/12/21
         - 200; application/json: Successfully gets the information of all photos, returns an array of json objects of the photo information. 
         - 401: x-user is missing from header or user is not authenticated
         - 500: Internal server error.
@@ -87,6 +92,7 @@ As developers, our team has someone who’s a photographer working for UW studen
         - 500: Internal server error.
 - /v1/tags: create a new tag
     - POST: create a new tag with a name
+        - Required payload: {"name": "Selected"}, name refers to the tag name you want to have.
         - 201  tag created
         - 401: x-user is missing from header or user is not authenticated
         - 500: internal server error
@@ -98,6 +104,7 @@ As developers, our team has someone who’s a photographer working for UW studen
         - 500: internal errors
 - /v1/tags/:tagID/members
     - POST; application/json: add a new member to the tag group, returns a updated tag object
+        - Required payload: {"id": 20}, id refers to the user's id
         - 201: successfully added the member
         - 400: user id is not supplied
         - 401: x-user is missing from header or user is not authenticated
