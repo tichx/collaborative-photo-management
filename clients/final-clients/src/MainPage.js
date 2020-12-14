@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 
 const MainPage = (props) => {
+    //data structure for getting images
     const [imgDataList,setImgDataList] = useState([]);
+    //data structure for getting tags
     const [tagDataList,setTagDataList] = useState([]);
     // const [tagText, setTagText] = useState("");
     const [tag,setTag] = useState(-1);
@@ -100,9 +102,24 @@ const ImgCard = (props) =>{
     
 }
 
-//helper that binds tag names with each image so that tags can show
+//TODO: constructs a map with tag id as the key that points to the 
+//corresponding tag object as the value. this table is used to search tag ID and show
+//tag name under relevant image.
+const MapTagIDName = ()=>{
+    
+}
+
+//TODO: search tag names with each image so that tags can show
 //under each image.
 //Note that not all image has a tag
+const SearchImageTag = ()=>{
+    
+}
+
+//TODO: bind image to a new tag name input by user and post 
+//it to /v1/tags with payload: {"name": "tagname"}
 const BindTagImg = ()=>{
     
 }
+
+
