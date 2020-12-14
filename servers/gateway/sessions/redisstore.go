@@ -34,7 +34,7 @@ func NewRedisStore(client *redis.Client, sessionDuration time.Duration) *RedisSt
 //The `sessionState` parameter is typically a pointer to a struct containing
 //all the data you want to associated with the given SessionID.
 func (rs *RedisStore) Save(sid SessionID, sessionState interface{}) error {
-	//TODO: marshal the `sessionState` to JSON and save it in the redis database,
+	//marshal the `sessionState` to JSON and save it in the redis database,
 	//using `sid.getRedisKey()` for the key.
 	//return any errors that occur along the way.
 	marshaled, err := json.Marshal(sessionState)
@@ -42,7 +42,7 @@ func (rs *RedisStore) Save(sid SessionID, sessionState interface{}) error {
 		return err
 	}
 	log.Println("Trying to Save sid: " + sid.getRedisKey())
-	err = rs.Client.Set(sid.getRedisKey(), marshaled, rs.SessionDuration).Err()
+	err = rs.Client.Set(sid.getRedisKey(), marshaled, 1*time.Hour).Err()
 	if err != nil {
 		if err == redis.Nil {
 			return fmt.Errorf("nil token?")
@@ -56,29 +56,29 @@ func (rs *RedisStore) Save(sid SessionID, sessionState interface{}) error {
 //Get populates `sessionState` with the data previously saved
 //for the given SessionID
 func (rs *RedisStore) Get(sid SessionID, sessionState interface{}) error {
-	//TODO: get the previously-saved session state data from redis,
+	//get the previously-saved session state data from redis,
 	//unmarshal it back into the `sessionState` parameter
 	//and reset the expiry time, so that it doesn't get deleted until
 	//the SessionDuration has elapsed.
 
-	//for extra-credit using the Pipeline feature of the redis
+	//did not use the Pipeline feature of the redis
 	//package to do both the get and the reset of the expiry time
 	//in just one network round trip!
-	oldData, err := rs.Client.Get(sid.getRedisKey()).Bytes()
+	pipe := rs.Client.Pipeline()
+	j := pipe.Get(sid.getRedisKey())
+	pipe.Expire(sid.getRedisKey(), 1*time.Hour)
+	_, err := pipe.Exec()
 	if err != nil {
-		return err
+		return ErrStateNotFound
 	}
-	err = json.Unmarshal(oldData, sessionState)
-	if err != nil {
-		return err
-	}
-	rs.Client.Expire(sid.getRedisKey(), rs.SessionDuration)
+	result, _ := j.Bytes()
+	json.Unmarshal(result, sessionState)
 	return nil
 }
 
 //Delete deletes all state data associated with the SessionID from the store.
 func (rs *RedisStore) Delete(sid SessionID) error {
-	//TODO: delete the data stored in redis for the provided SessionID
+	//delete the data stored in redis for the provided SessionID
 	resp := rs.Client.Del(sid.getRedisKey())
 	if resp.Err() != nil {
 		return resp.Err()
