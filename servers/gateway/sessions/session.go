@@ -19,6 +19,7 @@ var ErrInvalidScheme = errors.New("authorization scheme not supported")
 //BeginSession creates a new SessionID, saves the `sessionState` to the store, adds an
 //Authorization header to the response with the SessionID, and returns the new SessionID
 func BeginSession(signingKey string, store Store, sessionState interface{}, w http.ResponseWriter) (SessionID, error) {
+	//TODO:
 	//- create a new SessionID
 	//- save the sessionState to the store
 	//- add a header to the ResponseWriter that looks like this:
@@ -40,41 +41,35 @@ func BeginSession(signingKey string, store Store, sessionState interface{}, w ht
 
 //GetSessionID extracts and validates the SessionID from the request headers
 func GetSessionID(r *http.Request, signingKey string) (SessionID, error) {
-	//get the value of the Authorization header,
+	//TODO: get the value of the Authorization header,
 	//or the "auth" query string parameter if no Authorization header is present,
 	//and validate it. If it's valid, return the SessionID. If not
 	//return the validation error.
-	var sidraw string
-	var sid string
-	var err error
+	header := r.Header.Get(headerAuthorization)
+	if len(header) == 0 {
+		header = r.URL.Query().Get(paramAuthorization)
+	}
+	if len(header) == 0 {
+		return InvalidSessionID, ErrNoSessionID
+	}
 
-	//if Authorization header exists, extract the header
-	if _, exists := r.Header[headerAuthorization]; exists {
-		sidraw = r.Header.Get(headerAuthorization)
-		sid, err = ValidateBearerHelper(sidraw)
-		if nil != err {
-			return InvalidSessionID, err
-		}
-		//else attempt to extract from query
-	} else {
-		sidraw = r.URL.Query().Get("auth")
-		sid, err = ValidateBearerHelper(sidraw)
-		if nil != err {
-			return InvalidSessionID, err
-		}
+	if !strings.HasPrefix(header, schemeBearer) {
+		return InvalidSessionID, ErrInvalidScheme
 	}
-	validSid, err := ValidateID(sid, signingKey)
-	if nil != err {
-		return InvalidSessionID, err
+	header = strings.TrimPrefix(header, schemeBearer)
+
+	sid, err := ValidateID(header, signingKey)
+	if err != nil {
+		return InvalidSessionID, ErrNoSessionID
 	}
-	return validSid, nil
+	return sid, nil
 }
 
 //GetState extracts the SessionID from the request,
 //gets the associated state from the provided store into
 //the `sessionState` parameter, and returns the SessionID
 func GetState(r *http.Request, signingKey string, store Store, sessionState interface{}) (SessionID, error) {
-	//get the SessionID from the request, and get the data
+	//TODO: get the SessionID from the request, and get the data
 	//associated with that SessionID from the store.
 	sid, err := GetSessionID(r, signingKey)
 	if err != nil {
@@ -88,21 +83,11 @@ func GetState(r *http.Request, signingKey string, store Store, sessionState inte
 	return sid, nil
 }
 
-//ValidateBearerHelper takes in a raw sid string, check if it's empty or has wrong prefix
-//return sid if its in correct format, or else return ErrInvalidScheme error
-func ValidateBearerHelper(sidraw string) (string, error) {
-	if len(sidraw) == 0 || !(strings.HasPrefix(sidraw, schemeBearer)) {
-		return "", ErrInvalidScheme
-	}
-	sid := strings.TrimPrefix(sidraw, schemeBearer)
-	return sid, nil
-}
-
 //EndSession extracts the SessionID from the request,
 //and deletes the associated data in the provided store, returning
 //the extracted SessionID.
 func EndSession(r *http.Request, signingKey string, store Store) (SessionID, error) {
-	//get the SessionID from the request, and delete the
+	//TODO: get the SessionID from the request, and delete the
 	//data associated with it in the store.
 	sid, err := GetSessionID(r, signingKey)
 	if err != nil {

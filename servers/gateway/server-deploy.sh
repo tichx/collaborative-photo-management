@@ -1,7 +1,6 @@
 docker rm -f gateway
 docker rm -f redis
 docker pull ss251/gateway
-docker pull ss251/message
 
 docker run -d \
 -p 6379:6379 \
