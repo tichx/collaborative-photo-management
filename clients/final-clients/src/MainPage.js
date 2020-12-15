@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import './Styles/MainPage.css';
+
 import ReactDOM from 'react-dom';
 
 const MainPage = (props) => {
@@ -6,7 +8,12 @@ const MainPage = (props) => {
     const [imgDataList,setImgDataList] = useState([]);
     //data structure for getting tags
     const [tagDataList,setTagDataList] = useState([]);
+    //variable to store user imput tag name
     // const [tagText, setTagText] = useState("");
+
+    //map to store binding between tag id and object
+    const [tagIDTable, setTagIDTable] = useState({});
+    //variable to store selected tag
     const [tag,setTag] = useState(-1);
 
     // Fetch all img data
@@ -22,52 +29,48 @@ const MainPage = (props) => {
         .then(data => 
         {
             setTagDataList(data)
+            //setTagIDTable(data)
         })
 
 
     });
-
-
+    
+    //assign tag id and name to the tag id table
+    let setTagIDTable = (data) => {
+        Object.assign(tagIDTable, {data.id : data});
+    }
     
     return (
     <div>
         <TagButtonList tags={tagDataList} onClick={setTag}/>
         <ImgCardList  tag={tag} imgDataList={imgDataList}/>
     </div>
-    )
+    );
     
 }
 
 //populates the tag buttons into a list
 const TagButtonList = (props)=>{
-    const TagLists = props.tags.map(data=><TagButton key={data.id} tag={data} onClick={props.onClick}/>)
+    const TagLists = props.tags.map(data=><TagButton key={data.id} tag={data} onClick={props.onClick}/>);
 }
-
-//helper that maps tagid with tag object so that when photos are populated,
-//each photo component can search this map provided the list of photo's tag id
-/*
-const TagTable = (props) => {
-    const Table = props.tags.map(data => <Map key={data.id} tag={data}/>)
-}
-*/
 
 //gets the new tag name typed by user, pass it to /v1/tags
-/*const TagText = () => {
+const TagText = () => {
     return <input
     type="text"
     placeholder="tag name..."
     onChange={event => {this.setState({tagText: event.target.value})}}
     onKeyPress={event => {
                 if (event.key === 'Enter') {
-                  this.search()
+                  pushTag()
                 }
               }}
-/>
-}*/
+    />;
+};
 
 //individual button showing each tag
 const TagButton = (props)=>{
-    return <button onClick={props.onClick(props.tag.id)}>props.tag.name</button>
+    return <button onClick={props.onClick(props.tag.id)}>props.tag.name</button>;
 }
 
 //populates the image cards into a list
@@ -91,13 +94,16 @@ const ImgCardList = (props) => {
 //individual image card, still missing function that when clicked,
 //lets user add a tag for this photo
 const ImgCard = (props) =>{
-    
+    let displayTags = props.img.tags.map((item, i) => (
+        <p>{tagIDTable[item.id].name}</p>
+    ));
     
     
     return(<div>
         <img src={props.img.url}/>
         <button onClick={}>Add Tag</button>
-     </div>)
+        {displayTags}
+     </div>);
     
     
 }
