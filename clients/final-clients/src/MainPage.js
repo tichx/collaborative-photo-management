@@ -91,7 +91,8 @@ const TagButtonList = (props)=>{
 //gets the new tag name typed by user, after user press 'Enter', pass it to /v1/tags
 //with payload: {"name": "tagname"}
 const TagTextField = (props) => {
-    return <input
+    return <div>
+    <input
     type="text"
     placeholder="create new tag"
     onKeyPress={event => {
@@ -112,7 +113,8 @@ const TagTextField = (props) => {
                 }
               }}
     />;
-
+    <p>successfully bound photo with tag!</p>
+    </div>
 };
 
 //individual button showing each tag
@@ -181,7 +183,8 @@ const ImgCard = (props) =>{
 //it to /v1/photos/:photoID/tag/:tagID 
 const BindTagImg = (props)=>{
     var imageID = props.imgID;
-    return <input
+    return <div>
+    <input
     type="text"
     placeholder="bind photo with old tag"
     onKeyPress={event => {
@@ -201,6 +204,8 @@ const BindTagImg = (props)=>{
                 }
               }}
     />;
+    <p>successfully bound photo with tag!</p>
+    </div>
 }
 
 
