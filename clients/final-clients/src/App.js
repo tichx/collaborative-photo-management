@@ -96,7 +96,7 @@ class App extends Component {
                         setAuthToken={this.setAuthToken}
                         setUser={this.setUser} />
                 }
-                <MainPage></MainPage>
+                <MainPage/>
             </div>
         );
     }

@@ -17,12 +17,16 @@ const MainPage = (props) => {
     const [IDTagTable, setIDTagTable] = useState({});
     //variable to store selected tag
     const [tag,setTag] = useState(-1);
+    const handleTagClick = (newTagId)=>{
+        setTag(newTagId);
+    }
 
     // let tagIDTable = {};
 
     // Fetch all img data
-    // console.log(localStorage.getItem("Authorization"));
+    console.log(localStorage.getItem("Authorization"));
     useEffect(() => {
+        // console.log(localStorage.getItem("Authorization"));
         fetch("https://api.xutiancheng.me/v1/photos",  { 
             method: 'get', 
             headers: new Headers({
@@ -30,10 +34,11 @@ const MainPage = (props) => {
             })
           })
         .then(resp => resp.json())
-        // .then(data => {setImgDataList(data)})
-    });
+        .then(data => {setImgDataList(data)})
+    },[]);
     // Fetch all tag data
     useEffect(() => {
+        // console.log(localStorage.getItem("Authorization"));
         fetch("https://api.xutiancheng.me/v1/tags",  { 
             method: 'get', 
             headers: new Headers({
@@ -41,32 +46,32 @@ const MainPage = (props) => {
             })
           })
         .then(resp => resp.json())
-        // .then(data => 
-        // {   
-        //     for (let index = 0; index < data.length; index++) {
-        //         const element = data[index];
-        //         let obj={};
-        //         obj[element.id] = element.name;
-        //         Object.assign(tagIDTable, obj);
+        .then(data => 
+        {   
+            for (let index = 0; index < data.length; index++) {
+                const element = data[index];
+                let obj={};
+                obj[element.id] = element.name;
+                Object.assign(tagIDTable, obj);
     
-        //         let obj2={};
-        //         obj[element.name] = element.id;
-        //         Object.assign(IDTagTable, obj2);
-        //     }
-        //     setTagDataList(data);
-        // })
+                let obj2={};
+                obj2[element.name] = element.id;
+                Object.assign(IDTagTable, obj2);
+            }
+            setTagDataList(data);
+        })
 
 
-    });
+    },[]);
 
     
     return (
     <div>
-        <TagButtonList tags={tagDataList} onClick={setTag}/>
+        <TagTextField/>
+        <TagButtonList tags={tagDataList} setTag={handleTagClick}/>
         <ImgCardList tag={tag} imgDataList={imgDataList} tagIDTable={tagIDTable} IDTagTable={IDTagTable}/>
         {/* <button onClick={BindTagImg} key="12345" IDTagTable={IDTagTable}>Add Tag</button> */}
         {/* <ImgCardList tags={tagDataList} tag={tag} imgDataList={imgDataList}/> */}
-        <TagTextField></TagTextField>
     </div>
     );
     
@@ -74,7 +79,8 @@ const MainPage = (props) => {
 
 //populates the tag buttons into a list
 const TagButtonList = (props)=>{
-    const TagLists = props.tags.map(data=><TagButton key={data.id} tag={data} onClick={props.onClick}/>);
+    const TagLists = props.tags.map(data=><TagButton key={data.id} tag={data} setTag={props.setTag}/>);
+    
     return (<div style={{display:"flex","flexDirection": "row"}}>{TagLists}</div>)
 }
 
@@ -84,17 +90,17 @@ const TagButtonList = (props)=>{
 const TagTextField = () => {
     return <input
     type="text"
-    placeholder="type tag to upload..."
+    placeholder="create new tag"
     onKeyPress={event => {
                 if (event.key === 'Enter') {
-                    useEffect(() => {
+                    var newTag = event.target.value;
                         // POST request using fetch inside useEffect React hook
                         const requestOptions = {
                             method: 'post',
                             headers: new Headers({
                                 'Authorization': localStorage.getItem("Authorization"), 
                               }),
-                            body: JSON.stringify({ name: "tagText" })
+                            body: JSON.stringify({ newTag: "Selected" })
                         };
                         fetch("https://api.xutiancheng.me/v1/tags", requestOptions)
                         // .then(resp => resp.json())
@@ -110,7 +116,6 @@ const TagTextField = () => {
                         // var response1 = JSON.parse(xhr.responseText);
                         // }}
                     // empty dependency array means this effect will only run once (like componentDidMount in classes)
-                    }, []);
                 }
               }}
     />;
@@ -118,7 +123,11 @@ const TagTextField = () => {
 
 //individual button showing each tag
 const TagButton = (props)=>{
-        return <button onClick={props.tag.id}>{props.tag.name}</button>;
+
+    const handleTagClick = (e)=>{
+        props.setTag(props.tag.id)
+    }
+        return <button onClick={handleTagClick}>{props.tag.name}</button>;
 
     // return <button onClick={props.onClick(props.tag.id)}>props.tag.name</button>;
 }
@@ -152,16 +161,17 @@ const ImgCard = (props) =>{
     // let displayTags = props.img.tags.map((item, i) => (
     //     <p>{tagIDTable[item.id].name}</p>
     // ));
+    
+
     let tagNameList = [];
     for (let index = 0; index < props.img.tags.length; index++) {
         let tagIDFromImage = props.img.tags[index].id;
         let tagID = props.tagIDTable[tagIDFromImage];
         tagNameList.push(tagID);
     }
-    
         // console.log(cardComponentList);
     let displayResult = tagNameList.map((item, i) => (
-          <p className="font-size-0-8">
+          <p key={i} className="font-size-0-8">
             {item}
           </p>)
     );
@@ -170,7 +180,8 @@ const ImgCard = (props) =>{
     <div>
         <img src={props.img.url} style={{width:"150px",height:"150px"}}/>
         {displayResult}
-         <button onClick={BindTagImg} key={props.img.id} IDTagTable={props.IDTagTable}>Add Tag</button>
+        <BindTagImg imgID={props.img.id} IDTagTable={props.IDTagTable}/>
+         {/* <button onClick={BindTagImg} key={props.img.id} IDTagTable={props.IDTagTable}>Add Tag</button> */}
     </div>
      );
     
@@ -179,14 +190,18 @@ const ImgCard = (props) =>{
 //TODO: bind image to a new tag name input by user and post 
 //it to /v1/photos/:photoID/tag/:tagID 
 const BindTagImg = (props)=>{
-    console.log(props.IDTagTable);
-    
+    var imageID = props.imgID;
+    // console.log(imageID);
     return <input
     type="text"
-    placeholder="type tag to upload..."
+    placeholder="bind photo with tag"
     onKeyPress={event => {
                 if (event.key === 'Enter') {
-                    useEffect(() => {
+                    var tagName = event.target.value;
+                    console.log("tagName is: " + tagName);
+                    var tagID = props.IDTagTable[tagName];
+                    console.log("tagID is: " + tagID);
+                    
                         // POST request using fetch inside useEffect React hook
                         const requestOptions = {
                             method: 'post',
@@ -194,8 +209,8 @@ const BindTagImg = (props)=>{
                                 'Authorization': localStorage.getItem("Authorization"), 
                               }),
                         };
-                        fetch("https://api.xutiancheng.me/v1/tags", requestOptions)
-                    }, []);
+                        fetch("https://api.xutiancheng.me/v1/photos/"+imageID+"/tag/"+tagID, requestOptions)
+                    
                 }
               }}
     />;
