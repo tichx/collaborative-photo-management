@@ -5,7 +5,7 @@ import SignOutButton from './Components/SignOutButton/SignOutButton';
 import UpdateName from './Components/UpdateName/UpdateName';
 import UpdateAvatar from './Components/UpdateAvatar/UpdateAvatar';
 import UploadImage from './Components/UploadImage/UploadImage';
-// import MainPage from '../../MainPage.js';
+import MainPage from '../../MainPage.js';
 
 
 const Main = ({ page, setPage, setAuthToken, setUser, user }) => {
@@ -23,6 +23,9 @@ const Main = ({ page, setPage, setAuthToken, setUser, user }) => {
             break;
         case PageTypes.signedInUploadImage:
             content = <UploadImage user={user} setUser={setUser} />;
+            break;
+        case PageTypes.mainPage:
+            content = <MainPage user={user}/>
             break;
         default:
             content = <>Error, invalid path reached</>;

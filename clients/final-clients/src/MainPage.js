@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './Styles/MainPage.css';
 
-import ReactDOM from 'react-dom';
-import { checkPropTypes } from 'prop-types';
-
 const MainPage = (props) => {
     //data structure for getting images
     const [imgDataList,setImgDataList] = useState([]);
@@ -21,12 +18,10 @@ const MainPage = (props) => {
         setTag(newTagId);
     }
 
-    // let tagIDTable = {};
 
     // Fetch all img data
     console.log(localStorage.getItem("Authorization"));
     useEffect(() => {
-        // console.log(localStorage.getItem("Authorization"));
         fetch("https://api.xutiancheng.me/v1/photos",  { 
             method: 'get', 
             headers: new Headers({
@@ -38,11 +33,10 @@ const MainPage = (props) => {
     },[]);
     // Fetch all tag data
     useEffect(() => {
-        // console.log(localStorage.getItem("Authorization"));
         fetch("https://api.xutiancheng.me/v1/tags",  { 
             method: 'get', 
             headers: new Headers({
-              'Authorization': localStorage.getItem("Authorization"), 
+                  'Authorization': localStorage.getItem("Authorization"), 
             })
           })
         .then(resp => resp.json())
@@ -84,7 +78,6 @@ const TagButtonList = (props)=>{
     return (<div style={{display:"flex","flexDirection": "row"}}>{TagLists}</div>)
 }
 
-//TODO:
 //gets the new tag name typed by user, after user press 'Enter', pass it to /v1/tags
 //with payload: {"name": "tagname"}
 const TagTextField = () => {
@@ -98,27 +91,17 @@ const TagTextField = () => {
                         const requestOptions = {
                             method: 'post',
                             headers: new Headers({
+                                'Content-Type': 'application/json',
                                 'Authorization': localStorage.getItem("Authorization"), 
                               }),
-                            body: JSON.stringify({ newTag: "Selected" })
+                            body: JSON.stringify({"name": newTag})
                         };
-                        fetch("https://api.xutiancheng.me/v1/tags", requestOptions)
-                        // .then(resp => resp.json())
-                        // .then(console.log(resp));
-                        // var xhr = new XMLHttpRequest();
-                        // xhr.open('POST', "https://api.xutiancheng.me/v1/tags", true);
-                        // xhr.setRequestHeader('Authorization', localStorage.getItem("Authorization"));
-                        // xhr.send(JSON.stringify({ name: "tagText" }));
-                        // xhr.onreadystatechange = processRequest;
-                        // console.log(xhr);
-                        // function processRequest(e) {
-                        // if (xhr.readyState == 4 && xhr.status == 200) {
-                        // var response1 = JSON.parse(xhr.responseText);
-                        // }}
-                    // empty dependency array means this effect will only run once (like componentDidMount in classes)
+
+                        fetch("https://api.xutiancheng.me/v1/tags", requestOptions);
                 }
               }}
     />;
+
 };
 
 //individual button showing each tag
@@ -128,8 +111,6 @@ const TagButton = (props)=>{
         props.setTag(props.tag.id)
     }
         return <button onClick={handleTagClick}>{props.tag.name}</button>;
-
-    // return <button onClick={props.onClick(props.tag.id)}>props.tag.name</button>;
 }
 
 //populates the image cards into a list
@@ -137,13 +118,17 @@ const ImgCardList = (props) => {
     var photoListItems;
     if (props.tag === -1) {
         photoListItems = props.imgDataList.map((data) => {
-            // return <ImgCard key={data.id} img={data} tags={props.tags}/>
 
             return <ImgCard key={data.id} img={data} style={{display:"flex","flex-wrap":"wrap","flexDirection": "row"}}  tagIDTable={props.tagIDTable} IDTagTable={props.IDTagTable}/>
         });
     } else {
+
         photoListItems = props.imgDataList.map((data) => {
-            if (data.tags.includes(props.tag)){
+            var tagIds = []
+            data.tags.forEach(e => {
+                tagIds.push(e.id)
+            });
+            if (tagIds.includes(props.tag)){
                 // return <ImgCard key={data.id} img={data} tags={props.tags}/>
 
                 return <ImgCard key={data.id} img={data} style={{display:"flex","flex-wrap":"wrap","flexDirection": "row"}} tagIDTable={props.tagIDTable} IDTagTable={props.IDTagTable}/>
@@ -157,19 +142,13 @@ const ImgCardList = (props) => {
 //individual image card, still missing function that when clicked,
 //lets user add a tag for this photo
 const ImgCard = (props) =>{
-    //TODO:
-    // let displayTags = props.img.tags.map((item, i) => (
-    //     <p>{tagIDTable[item.id].name}</p>
-    // ));
     
-
     let tagNameList = [];
     for (let index = 0; index < props.img.tags.length; index++) {
         let tagIDFromImage = props.img.tags[index].id;
         let tagID = props.tagIDTable[tagIDFromImage];
         tagNameList.push(tagID);
     }
-        // console.log(cardComponentList);
     let displayResult = tagNameList.map((item, i) => (
           <p key={i} className="font-size-0-8">
             {item}
@@ -187,20 +166,18 @@ const ImgCard = (props) =>{
     
 }
 
-//TODO: bind image to a new tag name input by user and post 
+//bind image to a new tag name input by user and post 
 //it to /v1/photos/:photoID/tag/:tagID 
 const BindTagImg = (props)=>{
     var imageID = props.imgID;
-    // console.log(imageID);
     return <input
     type="text"
-    placeholder="bind photo with tag"
+    placeholder="bind photo with old tag"
     onKeyPress={event => {
                 if (event.key === 'Enter') {
+                    console.log("enter posting");
                     var tagName = event.target.value;
-                    console.log("tagName is: " + tagName);
                     var tagID = props.IDTagTable[tagName];
-                    console.log("tagID is: " + tagID);
                     
                         // POST request using fetch inside useEffect React hook
                         const requestOptions = {

@@ -1,10 +1,16 @@
 import React, { Component } from 'react';
+// import {
+//     Route,
+//     BrowserRouter,
+//     Switch,
+//   } from 'react-router-dom';
 import Auth from './Components/Auth/Auth';
 import PageTypes from './Constants/PageTypes/PageTypes';
 import Main from './Components/Main/Main';
 import './Styles/App.css';
 import api from './Constants/APIEndpoints/APIEndpoints';
 import MainPage from './MainPage.js';
+// import login from './login.js';
 
 
 class App extends Component {
@@ -81,6 +87,8 @@ class App extends Component {
 
     render() {
         const { page, user } = this.state;
+        
+
         return (
             <div>
                 <h1 id="proj-title">441 Photo Management</h1>
@@ -96,7 +104,6 @@ class App extends Component {
                         setAuthToken={this.setAuthToken}
                         setUser={this.setUser} />
                 }
-                <MainPage/>
             </div>
         );
     }

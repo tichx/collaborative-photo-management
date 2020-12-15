@@ -34,6 +34,7 @@ const MainPageContent = ({ user, setPage }) => {
         <div><button onClick={(e) => { setPage(e, PageTypes.signedInUpdateName) }}>Update name</button></div>
         <div><button onClick={(e) => { setPage(e, PageTypes.signedInUpdateAvatar) }}>Update avatar</button></div>
         <div><button onClick={(e) => { setPage(e, PageTypes.signedInUploadImage) }}>Upload an image</button></div>
+        <div><button onClick={(e) => { setPage(e, PageTypes.mainPage) }}>Photo Management</button></div>
     </>
 }
 
