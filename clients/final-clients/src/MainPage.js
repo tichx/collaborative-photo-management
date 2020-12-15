@@ -18,9 +18,19 @@ const MainPage = (props) => {
         setTag(newTagId);
     }
 
+    const [notifyTagChange, setNotifyTagChange] = useState(false);
+
+    const NotifyTagUpdate = () =>{
+        setTimeout(() => {
+            setNotifyTagChange(!notifyTagChange)
+        }, 1000);
+    }
+
+    // TEST ONLY!!!backdoor code for getting authorization token.
+    // console.log(localStorage.getItem("Authorization"));
+
 
     // Fetch all img data
-    console.log(localStorage.getItem("Authorization"));
     useEffect(() => {
         fetch("https://api.xutiancheng.me/v1/photos",  { 
             method: 'get', 
@@ -56,14 +66,14 @@ const MainPage = (props) => {
         })
 
 
-    },[]);
+    },[notifyTagChange]);
 
     
     return (
     <div>
-        <TagTextField/>
+        <TagTextField NotifyTagUpdate={NotifyTagUpdate}/>
         <TagButtonList tags={tagDataList} setTag={handleTagClick}/>
-        <ImgCardList tag={tag} imgDataList={imgDataList} tagIDTable={tagIDTable} IDTagTable={IDTagTable}/>
+        <ImgCardList tag={tag} imgDataList={imgDataList} tagIDTable={tagIDTable} IDTagTable={IDTagTable} NotifyTagUpdate={NotifyTagUpdate}/>
         {/* <button onClick={BindTagImg} key="12345" IDTagTable={IDTagTable}>Add Tag</button> */}
         {/* <ImgCardList tags={tagDataList} tag={tag} imgDataList={imgDataList}/> */}
     </div>
@@ -80,7 +90,7 @@ const TagButtonList = (props)=>{
 
 //gets the new tag name typed by user, after user press 'Enter', pass it to /v1/tags
 //with payload: {"name": "tagname"}
-const TagTextField = () => {
+const TagTextField = (props) => {
     return <input
     type="text"
     placeholder="create new tag"
@@ -98,6 +108,7 @@ const TagTextField = () => {
                         };
 
                         fetch("https://api.xutiancheng.me/v1/tags", requestOptions);
+                        props.NotifyTagUpdate();
                 }
               }}
     />;
@@ -119,7 +130,7 @@ const ImgCardList = (props) => {
     if (props.tag === -1) {
         photoListItems = props.imgDataList.map((data) => {
 
-            return <ImgCard key={data.id} img={data} style={{display:"flex","flex-wrap":"wrap","flexDirection": "row"}}  tagIDTable={props.tagIDTable} IDTagTable={props.IDTagTable}/>
+            return <ImgCard key={data.id} img={data} style={{display:"flex","flex-wrap":"wrap","flexDirection": "row"}}  tagIDTable={props.tagIDTable} IDTagTable={props.IDTagTable} NotifyTagUpdate={props.NotifyTagUpdate}/>
         });
     } else {
 
@@ -131,7 +142,7 @@ const ImgCardList = (props) => {
             if (tagIds.includes(props.tag)){
                 // return <ImgCard key={data.id} img={data} tags={props.tags}/>
 
-                return <ImgCard key={data.id} img={data} style={{display:"flex","flex-wrap":"wrap","flexDirection": "row"}} tagIDTable={props.tagIDTable} IDTagTable={props.IDTagTable}/>
+                return <ImgCard key={data.id} img={data} style={{display:"flex","flex-wrap":"wrap","flexDirection": "row"}} tagIDTable={props.tagIDTable} IDTagTable={props.IDTagTable} NotifyTagUpdate={props.NotifyTagUpdate}/>
             }
         });
     }
@@ -159,7 +170,7 @@ const ImgCard = (props) =>{
     <div>
         <img src={props.img.url} style={{width:"150px",height:"150px"}}/>
         {displayResult}
-        <BindTagImg imgID={props.img.id} IDTagTable={props.IDTagTable}/>
+        <BindTagImg imgID={props.img.id} IDTagTable={props.IDTagTable} NotifyTagUpdate={props.NotifyTagUpdate}/>
          {/* <button onClick={BindTagImg} key={props.img.id} IDTagTable={props.IDTagTable}>Add Tag</button> */}
     </div>
      );
@@ -175,7 +186,6 @@ const BindTagImg = (props)=>{
     placeholder="bind photo with old tag"
     onKeyPress={event => {
                 if (event.key === 'Enter') {
-                    console.log("enter posting");
                     var tagName = event.target.value;
                     var tagID = props.IDTagTable[tagName];
                     
@@ -187,7 +197,7 @@ const BindTagImg = (props)=>{
                               }),
                         };
                         fetch("https://api.xutiancheng.me/v1/photos/"+imageID+"/tag/"+tagID, requestOptions)
-                    
+                        props.NotifyTagUpdate();
                 }
               }}
     />;
