@@ -4,6 +4,8 @@ import PageTypes from './Constants/PageTypes/PageTypes';
 import Main from './Components/Main/Main';
 import './Styles/App.css';
 import api from './Constants/APIEndpoints/APIEndpoints';
+import MainPage from './MainPage.js';
+
 
 class App extends Component {
     constructor() {
@@ -94,6 +96,7 @@ class App extends Component {
                         setAuthToken={this.setAuthToken}
                         setUser={this.setUser} />
                 }
+                <MainPage></MainPage>
             </div>
         );
     }

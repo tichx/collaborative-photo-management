@@ -5,6 +5,8 @@ import SignOutButton from './Components/SignOutButton/SignOutButton';
 import UpdateName from './Components/UpdateName/UpdateName';
 import UpdateAvatar from './Components/UpdateAvatar/UpdateAvatar';
 import UploadImage from './Components/UploadImage/UploadImage';
+// import MainPage from '../../MainPage.js';
+
 
 const Main = ({ page, setPage, setAuthToken, setUser, user }) => {
     let content = <></>
