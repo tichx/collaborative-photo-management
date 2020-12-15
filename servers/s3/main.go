@@ -18,6 +18,7 @@ const (
 
 var sess = connectAWS()
 
+// was not able to create iam profile with educate account so had to use static credentials
 func connectAWS() *session.Session {
 	sess, err := session.NewSession(&aws.Config{Region: aws.String(AWS_S3_REGION), Credentials: credentials.NewStaticCredentials("AKIAJOMUO3S2R36HG3JQ", "tdfNki33dgN9EcDki2tMjp0ToW2SE6BJZvK4omoV", "")})
 	if err != nil {
@@ -41,6 +42,7 @@ func main() {
 	log.Fatal(http.ListenAndServe(addr, mux))
 }
 
+// error streaming
 func showError(w http.ResponseWriter, r *http.Request, status int, message string) {
 	w.WriteHeader(http.StatusBadRequest)
 	fmt.Fprintf(w, message)
