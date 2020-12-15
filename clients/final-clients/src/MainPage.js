@@ -72,7 +72,7 @@ const MainPage = (props) => {
     return (
     <div>
         <TagTextField NotifyTagUpdate={NotifyTagUpdate}/>
-        <TagButtonList tags={tagDataList} setTag={handleTagClick}/>
+        <TagButtonList tags={tagDataList} setTag={handleTagClick} NotifyTagUpdate={props.NotifyTagUpdate}/>
         <ImgCardList tag={tag} imgDataList={imgDataList} tagIDTable={tagIDTable} IDTagTable={IDTagTable} NotifyTagUpdate={NotifyTagUpdate}/>
         {/* <button onClick={BindTagImg} key="12345" IDTagTable={IDTagTable}>Add Tag</button> */}
         {/* <ImgCardList tags={tagDataList} tag={tag} imgDataList={imgDataList}/> */}
@@ -83,7 +83,7 @@ const MainPage = (props) => {
 
 //populates the tag buttons into a list
 const TagButtonList = (props)=>{
-    const TagLists = props.tags.map(data=><TagButton key={data.id} tag={data} setTag={props.setTag}/>);
+    const TagLists = props.tags.map(data=><TagButton key={data.id} tag={data} setTag={props.setTag} NotifyTagUpdate={props.NotifyTagUpdate}/>);
     
     return (<div style={{display:"flex","flexDirection": "row"}}>{TagLists}</div>)
 }
@@ -91,8 +91,7 @@ const TagButtonList = (props)=>{
 //gets the new tag name typed by user, after user press 'Enter', pass it to /v1/tags
 //with payload: {"name": "tagname"}
 const TagTextField = (props) => {
-    return <div>
-    <input
+    return <input
     type="text"
     placeholder="create new tag"
     onKeyPress={event => {
@@ -113,8 +112,7 @@ const TagTextField = (props) => {
                 }
               }}
     />;
-    <p>successfully bound photo with tag!</p>
-    </div>
+
 };
 
 //individual button showing each tag
@@ -123,7 +121,10 @@ const TagButton = (props)=>{
     const handleTagClick = (e)=>{
         props.setTag(props.tag.id)
     }
-        return <button onClick={handleTagClick}>{props.tag.name}</button>;
+        return <div style={{display:"flex",flexWrap:"wrap",flexDirection: "row", margin:"15px"}}>
+            <button onClick={handleTagClick}>{props.tag.name}</button>
+            <BindTagMember tagID = {props.tag.id} NotifyTagUpdate={props.NotifyTagUpdate}/>
+        </div>
 }
 
 //populates the image cards into a list
@@ -183,8 +184,7 @@ const ImgCard = (props) =>{
 //it to /v1/photos/:photoID/tag/:tagID 
 const BindTagImg = (props)=>{
     var imageID = props.imgID;
-    return <div>
-    <input
+    return <input
     type="text"
     placeholder="bind photo with old tag"
     onKeyPress={event => {
@@ -204,8 +204,34 @@ const BindTagImg = (props)=>{
                 }
               }}
     />;
-    <p>successfully bound photo with tag!</p>
-    </div>
+}
+
+//bind tag to a user id input by user and post 
+//it
+const BindTagMember = (props)=>{
+    var tagID = props.tagID;
+    return <input
+    type="text"
+    placeholder="userID"
+    style={{width:"50px"}}
+    onKeyPress={event => {
+                if (event.key === 'Enter') {
+                    var userID = event.target.value;
+                    
+                        // POST request using fetch inside useEffect React hook
+                        const requestOptions = {
+                            method: 'post',
+                            headers: new Headers({
+                                'Content-Type': 'application/json',
+                                'Authorization': localStorage.getItem("Authorization"), 
+                              }),
+                            body: JSON.stringify({"id": userID})
+                        };
+                        fetch("https://api.xutiancheng.me/v1/tags/"+tagID+"/members", requestOptions)
+                        props.NotifyTagUpdate();
+                }
+              }}
+    />;
 }
 
 
