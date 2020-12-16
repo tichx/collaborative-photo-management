@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import './Styles/MainPage.css';
+import Alert from 'react-bootstrap/Alert';
 
 const MainPage = (props) => {
+    //variable to tell if there's a warning message to show
+    const [show, setShow] = useState(false);
     //data structure for getting images
     const [imgDataList,setImgDataList] = useState([]);
     //data structure for getting tags
     const [tagDataList,setTagDataList] = useState([]);
-    //variable to store user imput tag name
-    const [tagText, setTagText] = useState("");
-
     //map to store binding between tag id and object
     const [tagIDTable, setTagIDTable] = useState({});
     const [IDTagTable, setIDTagTable] = useState({});
@@ -17,13 +17,16 @@ const MainPage = (props) => {
     const handleTagClick = (newTagId)=>{
         setTag(newTagId);
     }
+    const handleShow = () => {
+        setShow(true);
+    }
 
     const [notifyTagChange, setNotifyTagChange] = useState(false);
 
     const NotifyTagUpdate = () =>{
-        setTimeout(() => {
-            setNotifyTagChange(!notifyTagChange)
-        }, 1000);
+        
+        setNotifyTagChange(!notifyTagChange);
+        
     }
 
     // TEST ONLY!!!backdoor code for getting authorization token.
@@ -66,24 +69,45 @@ const MainPage = (props) => {
         })
 
 
-    },[notifyTagChange]);
+    },[notifyTagChange,show]);
 
-    
-    return (
-    <div>
-        <TagTextField NotifyTagUpdate={NotifyTagUpdate}/>
-        <TagButtonList tags={tagDataList} setTag={handleTagClick} NotifyTagUpdate={props.NotifyTagUpdate}/>
-        <ImgCardList tag={tag} imgDataList={imgDataList} tagIDTable={tagIDTable} IDTagTable={IDTagTable} NotifyTagUpdate={NotifyTagUpdate}/>
-        {/* <button onClick={BindTagImg} key="12345" IDTagTable={IDTagTable}>Add Tag</button> */}
-        {/* <ImgCardList tags={tagDataList} tag={tag} imgDataList={imgDataList}/> */}
-    </div>
-    );
+    if (show) {
+        return (
+            <div>
+            <TagTextField NotifyTagUpdate={NotifyTagUpdate} handleShow={handleShow}/>
+            <TagButtonList tags={tagDataList} setTag={handleTagClick} NotifyTagUpdate={NotifyTagUpdate} handleShow={handleShow}/>
+            <ImgCardList tag={tag} imgDataList={imgDataList} tagIDTable={tagIDTable} IDTagTable={IDTagTable} NotifyTagUpdate={NotifyTagUpdate} handleShow={handleShow}/>
+            {/* <button onClick={BindTagImg} key="12345" IDTagTable={IDTagTable}>Add Tag</button> */}
+            {/* <ImgCardList tags={tagDataList} tag={tag} imgDataList={imgDataList}/> */}
+            <Alert variant="danger" onClose={() => setShow(false)} dismissible>
+            <Alert.Heading>error for this request</Alert.Heading>
+            <p>
+              make sure you have a valid auth session, the image upload isn't 
+              duplicate, also the tag is case sensitive. If it's not your problem
+              then maybe there's an internal error.
+            </p>
+          </Alert>
+        </div>
+
+        );
+    } else {
+        return (
+            <div>
+                <TagTextField NotifyTagUpdate={NotifyTagUpdate}/>
+                <TagButtonList tags={tagDataList} setTag={handleTagClick} NotifyTagUpdate={props.NotifyTagUpdate}/>
+                <ImgCardList tag={tag} imgDataList={imgDataList} tagIDTable={tagIDTable} IDTagTable={IDTagTable} NotifyTagUpdate={NotifyTagUpdate}/>
+                {/* <button onClick={BindTagImg} key="12345" IDTagTable={IDTagTable}>Add Tag</button> */}
+                {/* <ImgCardList tags={tagDataList} tag={tag} imgDataList={imgDataList}/> */}
+            </div>
+            );
+    }
+
     
 }
 
 //populates the tag buttons into a list
 const TagButtonList = (props)=>{
-    const TagLists = props.tags.map(data=><TagButton key={data.id} tag={data} setTag={props.setTag} NotifyTagUpdate={props.NotifyTagUpdate}/>);
+    const TagLists = props.tags.map(data=><TagButton key={data.id} tag={data} setTag={props.setTag} NotifyTagUpdate={props.NotifyTagUpdate} handleShow={props.handleShow}/>);
     
     return (<div style={{display:"flex","flexDirection": "row"}}>{TagLists}</div>)
 }
@@ -107,8 +131,21 @@ const TagTextField = (props) => {
                             body: JSON.stringify({"name": newTag})
                         };
 
-                        fetch("https://api.xutiancheng.me/v1/tags", requestOptions);
-                        props.NotifyTagUpdate();
+                        fetch("https://api.xutiancheng.me/v1/tags", requestOptions)
+                        .then(resp => resp.json())
+                        .then(resp =>{
+                            if (resp.status < 300){
+                                setTimeout(() => {
+                                    props.NotifyTagUpdate();
+                                }, 1000)
+                            }
+                            //  else{
+                            //         props.handleShow();
+                            
+                            // }
+                        });
+                        
+
                 }
               }}
     />;
@@ -123,7 +160,7 @@ const TagButton = (props)=>{
     }
         return <div style={{display:"flex",flexWrap:"wrap",flexDirection: "row", margin:"15px"}}>
             <button onClick={handleTagClick}>{props.tag.name}</button>
-            <BindTagMember tagID = {props.tag.id} NotifyTagUpdate={props.NotifyTagUpdate}/>
+            <BindTagMember tagID = {props.tag.id} NotifyTagUpdate={props.NotifyTagUpdate} handleShow={props.handleShow}/>
         </div>
 }
 
@@ -133,7 +170,7 @@ const ImgCardList = (props) => {
     if (props.tag === -1) {
         photoListItems = props.imgDataList.map((data) => {
 
-            return <ImgCard key={data.id} img={data} style={{display:"flex","flex-wrap":"wrap","flexDirection": "row"}}  tagIDTable={props.tagIDTable} IDTagTable={props.IDTagTable} NotifyTagUpdate={props.NotifyTagUpdate}/>
+            return <ImgCard key={data.id} img={data} style={{display:"flex","flex-wrap":"wrap","flexDirection": "row"}}  tagIDTable={props.tagIDTable} IDTagTable={props.IDTagTable} NotifyTagUpdate={props.NotifyTagUpdate} handleShow={props.handleShow}/>
         });
     } else {
 
@@ -145,7 +182,7 @@ const ImgCardList = (props) => {
             if (tagIds.includes(props.tag)){
                 // return <ImgCard key={data.id} img={data} tags={props.tags}/>
 
-                return <ImgCard key={data.id} img={data} style={{display:"flex","flex-wrap":"wrap","flexDirection": "row"}} tagIDTable={props.tagIDTable} IDTagTable={props.IDTagTable} NotifyTagUpdate={props.NotifyTagUpdate}/>
+                return <ImgCard key={data.id} img={data} style={{display:"flex","flex-wrap":"wrap","flexDirection": "row"}} tagIDTable={props.tagIDTable} IDTagTable={props.IDTagTable} NotifyTagUpdate={props.NotifyTagUpdate} handleShow={props.handleShow}/>
             }
         });
     }
@@ -171,9 +208,9 @@ const ImgCard = (props) =>{
     
     return(
     <div>
-        <img src={props.img.url} style={{width:"150px",height:"150px"}}/>
+        <img src={props.img.url} alt="wrong image url" style={{width:"150px",height:"150px"}}/>
         {displayResult}
-        <BindTagImg imgID={props.img.id} IDTagTable={props.IDTagTable} NotifyTagUpdate={props.NotifyTagUpdate}/>
+        <BindTagImg imgID={props.img.id} IDTagTable={props.IDTagTable} NotifyTagUpdate={props.NotifyTagUpdate} handleShow={props.handleShow}/>
          {/* <button onClick={BindTagImg} key={props.img.id} IDTagTable={props.IDTagTable}>Add Tag</button> */}
     </div>
      );
@@ -200,7 +237,16 @@ const BindTagImg = (props)=>{
                               }),
                         };
                         fetch("https://api.xutiancheng.me/v1/photos/"+imageID+"/tag/"+tagID, requestOptions)
-                        props.NotifyTagUpdate();
+                        .then(resp =>{
+                            if (resp.status < 300){
+                                setTimeout(() => {
+                                    props.NotifyTagUpdate();
+                                }, 1000)
+                            } 
+                            // else{
+                            //     props.handleShow();
+                            // }
+                        });
                 }
               }}
     />;
@@ -228,7 +274,17 @@ const BindTagMember = (props)=>{
                             body: JSON.stringify({"id": userID})
                         };
                         fetch("https://api.xutiancheng.me/v1/tags/"+tagID+"/members", requestOptions)
-                        props.NotifyTagUpdate();
+                        .then(resp =>{
+                            if (resp.status < 300){
+                                setTimeout(() => {
+                                    props.NotifyTagUpdate();
+                                }, 1000)
+                            } 
+                            // else{
+                            //     props.handleShow();
+                            // }
+                        });
+
                 }
               }}
     />;
