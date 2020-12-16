@@ -13,7 +13,7 @@ import (
 
 //ImgStruct has meta-data for image
 type ImgStruct struct {
-	ImgUrl       string    `json:"imgurl"`
+	ImgURL       string    `json:"imgurl"`
 	DateModified time.Time `json:"datemodified"`
 }
 
