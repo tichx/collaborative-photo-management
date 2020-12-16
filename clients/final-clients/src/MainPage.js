@@ -132,18 +132,18 @@ const TagTextField = (props) => {
                         };
 
                         fetch("https://api.xutiancheng.me/v1/tags", requestOptions)
-                        .then(resp => resp.json())
-                        .then(resp =>{
-                            if (resp.status < 300){
-                                setTimeout(() => {
-                                    props.NotifyTagUpdate();
-                                }, 1000)
-                            }
-                            //  else{
-                            //         props.handleShow();
+                        // .then(resp => resp.json())
+                        // .then(resp =>{
+                        //     if (resp.status < 300){
+                        //         setTimeout(() => {
+                        //             props.NotifyTagUpdate();
+                        //         }, 1000)
+                        //     }
+                        //     //  else{
+                        //     //         props.handleShow();
                             
-                            // }
-                        });
+                        //     // }
+                        // });
                         
 
                 }
@@ -237,16 +237,16 @@ const BindTagImg = (props)=>{
                               }),
                         };
                         fetch("https://api.xutiancheng.me/v1/photos/"+imageID+"/tag/"+tagID, requestOptions)
-                        .then(resp =>{
-                            if (resp.status < 300){
-                                setTimeout(() => {
-                                    props.NotifyTagUpdate();
-                                }, 1000)
-                            } 
-                            // else{
-                            //     props.handleShow();
-                            // }
-                        });
+                        // .then(resp =>{
+                        //     if (resp.status < 300){
+                        //         setTimeout(() => {
+                        //             props.NotifyTagUpdate();
+                        //         }, 1000)
+                        //     } 
+                        //     // else{
+                        //     //     props.handleShow();
+                        //     // }
+                        // });
                 }
               }}
     />;
@@ -274,16 +274,16 @@ const BindTagMember = (props)=>{
                             body: JSON.stringify({"id": userID})
                         };
                         fetch("https://api.xutiancheng.me/v1/tags/"+tagID+"/members", requestOptions)
-                        .then(resp =>{
-                            if (resp.status < 300){
-                                setTimeout(() => {
-                                    props.NotifyTagUpdate();
-                                }, 1000)
-                            } 
-                            // else{
-                            //     props.handleShow();
-                            // }
-                        });
+                        // .then(resp =>{
+                        //     if (resp.status < 300){
+                        //         setTimeout(() => {
+                        //             props.NotifyTagUpdate();
+                        //         }, 1000)
+                        //     } 
+                        //     // else{
+                        //     //     props.handleShow();
+                        //     // }
+                        // });
 
                 }
               }}
